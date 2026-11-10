@@ -1,4 +1,5 @@
 pub mod bedrock;
+pub mod cloudflare;
 pub mod completions;
 pub mod copilot;
 pub mod gemini;

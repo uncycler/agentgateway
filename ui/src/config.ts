@@ -56,6 +56,7 @@ export const providerNames: ProviderName[] = [
 	'azure',
 	'copilot',
 	'typesafe',
+	'cloudflare',
 	'cohere',
 	'ollama',
 	'baseten',
@@ -111,6 +112,7 @@ export function providerDisplayName(provider: ProviderName | string): string {
 		azure: 'Azure',
 		copilot: 'GitHub Copilot',
 		typesafe: 'TypeSafe',
+		cloudflare: 'Cloudflare Workers AI',
 		cohere: 'Cohere',
 		ollama: 'Ollama',
 		baseten: 'Baseten',
@@ -389,6 +391,9 @@ export function modelWarnings(model: LlmModel): string[] {
 	}
 	if (provider === 'azure' && !model.params?.azureResourceName) {
 		warnings.push('Azure models should set a resource name.');
+	}
+	if (provider === 'cloudflare' && !model.params?.cloudflareAccountId) {
+		warnings.push('Cloudflare models should set an account ID.');
 	}
 	return warnings;
 }

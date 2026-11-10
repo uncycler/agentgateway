@@ -507,6 +507,8 @@ func convertAgentgatewayModel(ctx RouteContext, model *agentgateway.Agentgateway
 			provider = "gcp.vertex_ai"
 		case agentgateway.ModelProviderBedrock:
 			provider = "aws.bedrock"
+		case agentgateway.ModelProviderCloudflare:
+			provider = "cloudflare.workers_ai"
 		case agentgateway.ModelProviderCustom:
 			if model.Spec.Custom.ProviderOverride != nil {
 				provider = *model.Spec.Custom.ProviderOverride
@@ -789,6 +791,11 @@ func translateModelLLMProvider(ctx RouteContext, owner *agentgateway.Agentgatewa
 			GuardrailIdentifier: guardrailIdentifier,
 			GuardrailVersion:    guardrailVersion,
 		}}
+	case llm.Cloudflare != nil:
+		provider.Provider = &api.AIBackend_Provider_Cloudflare{Cloudflare: &api.AIBackend_Cloudflare{
+			AccountId: llm.Cloudflare.AccountID,
+			Model:     providerModel(selectedModel, llm.Cloudflare.Model),
+		}}
 	case llm.Custom != nil:
 		formats, err := plugins.TranslateCustomProviderFormats(llm.Custom.Formats)
 		if err != nil {
@@ -913,6 +920,11 @@ func modelLLMProvider(model *agentgateway.AgentgatewayModelSpec) (*agentgateway.
 			return nil, fmt.Errorf("bedrock provider requires bedrock configuration")
 		}
 		provider.Bedrock = &agentgateway.BedrockConfig{BedrockSettings: *model.Bedrock}
+	case agentgateway.ModelProviderCloudflare:
+		if model.Cloudflare == nil {
+			return nil, fmt.Errorf("cloudflare provider requires cloudflare configuration")
+		}
+		provider.Cloudflare = &agentgateway.CloudflareConfig{CloudflareSettings: *model.Cloudflare}
 	case agentgateway.ModelProviderCustom:
 		if model.Custom == nil {
 			return nil, fmt.Errorf("custom provider requires custom configuration")

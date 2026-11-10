@@ -65,6 +65,7 @@ function catalogProviderKeys(provider: string | null | undefined) {
 		anthropic: ['anthropic'],
 		azure: ['azure'],
 		copilot: ['copilot'],
+		cloudflare: ['cloudflare.workers_ai'],
 		typesafe: ['typesafe']
 	};
 	return [normalized, ...(aliases[normalized] ?? [])]

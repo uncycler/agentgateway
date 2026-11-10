@@ -20,6 +20,7 @@ export function modelDetail(model: LlmModel): string {
 		params.vertexRegion,
 		params.awsRegion,
 		params.azureResourceName,
+		params.cloudflareAccountId,
 		params.baseUrl ?? params.hostOverride,
 		...headers
 	]

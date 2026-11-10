@@ -1,0 +1,38 @@
+# Clef behind a Gateway listener. Create the cloudflare-token Secret first; its
+# Authorization key holds a Cloudflare API token with the Workers AI permission.
+apiVersion: agentgateway.dev/v1alpha1
+kind: AgentgatewayModel
+metadata:
+  name: clef
+  namespace: agentgateway-system
+spec:
+  parentRefs:
+  - group: gateway.networking.k8s.io
+    kind: Gateway
+    name: agentgateway-proxy
+    sectionName: http
+  match:
+    model: clef
+  provider: Cloudflare
+  cloudflare:
+    accountId: 0123456789abcdef0123456789abcdef
+  policies:
+    auth:
+      secretRef:
+        name: cloudflare-token
+---
+apiVersion: agentgateway.dev/v1alpha1
+kind: AgentgatewayBackend
+metadata:
+  name: workers-ai
+  namespace: agentgateway-system
+spec:
+  ai:
+    provider:
+      cloudflare:
+        accountId: 0123456789abcdef0123456789abcdef
+        model: "@cf/meta/llama-3.3-70b-instruct-fp8-fast"
+  policies:
+    auth:
+      secretRef:
+        name: cloudflare-token

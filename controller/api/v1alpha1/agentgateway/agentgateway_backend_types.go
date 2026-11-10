@@ -212,7 +212,7 @@ type NamedLLMProvider struct {
 }
 
 // Large language model provider that the backend routes requests to.
-// +kubebuilder:validation:ExactlyOneOf=openai;azureopenai;azure;anthropic;gemini;vertexai;bedrock;custom;copilot
+// +kubebuilder:validation:ExactlyOneOf=openai;azureopenai;azure;anthropic;gemini;vertexai;bedrock;cloudflare;custom;copilot
 // +kubebuilder:validation:XValidation:rule="has(self.host) || has(self.port) ? has(self.host) && has(self.port) : true",message="both host and port must be set together"
 // +kubebuilder:validation:XValidation:rule="has(self.custom) ? has(self.custom.backendRef) != has(self.host) : true",message="custom providers must specify exactly one of backendRef or host and port"
 // +kubebuilder:validation:XValidation:rule="!(has(self.path) && has(self.pathPrefix))",message="path and pathPrefix are mutually exclusive"
@@ -251,6 +251,10 @@ type LLMProvider struct {
 	// Bedrock provider settings.
 	// +optional
 	Bedrock *BedrockConfig `json:"bedrock,omitempty"`
+
+	// Cloudflare Workers AI provider settings.
+	// +optional
+	Cloudflare *CloudflareConfig `json:"cloudflare,omitempty"`
 
 	// Custom provider configures a non-managed or self-hosted LLM provider.
 	// Use this when the provider target and API formats should be declared
@@ -515,6 +519,26 @@ type AzureConfig struct {
 	AzureSettings `json:",inline"`
 
 	// Model name override, such as `gpt-4o-mini`.
+	// If unset, the model name is taken from the request.
+	// +optional
+	Model *ShortString `json:"model,omitempty"`
+}
+
+// Settings for [Cloudflare Workers AI](https://developers.cloudflare.com/workers-ai/).
+// Chat, Responses, and embeddings use the OpenAI-compatible API; System One
+// (Clef) and rerank use the native API. Authenticate with a Cloudflare API
+// token that has the Workers AI permission.
+type CloudflareSettings struct {
+	// The Cloudflare account ID that owns the Workers AI usage.
+	// +kubebuilder:validation:Pattern=`^[A-Za-z0-9_-]+$`
+	// +required
+	AccountID ShortString `json:"accountId"`
+}
+
+type CloudflareConfig struct {
+	CloudflareSettings `json:",inline"`
+
+	// Model name override, such as `@cf/cloudflare/clef`.
 	// If unset, the model name is taken from the request.
 	// +optional
 	Model *ShortString `json:"model,omitempty"`

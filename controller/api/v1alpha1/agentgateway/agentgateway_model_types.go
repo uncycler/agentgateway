@@ -53,6 +53,7 @@ type AgentgatewayModelList struct {
 // +kubebuilder:validation:XValidation:rule="has(self.azure) == (has(self.provider) && self.provider == 'Azure')",message="azure must be set if and only if provider is Azure"
 // +kubebuilder:validation:XValidation:rule="has(self.vertexai) == (has(self.provider) && self.provider == 'VertexAI')",message="vertexai must be set if and only if provider is VertexAI"
 // +kubebuilder:validation:XValidation:rule="has(self.bedrock) == (has(self.provider) && self.provider == 'Bedrock')",message="bedrock must be set if and only if provider is Bedrock"
+// +kubebuilder:validation:XValidation:rule="has(self.cloudflare) == (has(self.provider) && self.provider == 'Cloudflare')",message="cloudflare must be set if and only if provider is Cloudflare"
 // +kubebuilder:validation:XValidation:rule="has(self.custom) == (has(self.provider) && self.provider == 'Custom')",message="custom must be set if and only if provider is Custom"
 type AgentgatewayModelSpec struct {
 	// Parent resources to which this model attaches. Supported parent kinds are
@@ -94,6 +95,10 @@ type AgentgatewayModelSpec struct {
 	// Provider-specific settings for Amazon Bedrock.
 	// +optional
 	Bedrock *BedrockSettings `json:"bedrock,omitempty"`
+
+	// Provider-specific settings for Cloudflare Workers AI.
+	// +optional
+	Cloudflare *CloudflareSettings `json:"cloudflare,omitempty"`
 
 	// Provider-specific settings for a custom provider.
 	// +optional
@@ -264,6 +269,7 @@ const (
 	ModelProviderGemini      ModelProvider = "Gemini"
 	ModelProviderVertexAI    ModelProvider = "VertexAI"
 	ModelProviderBedrock     ModelProvider = "Bedrock"
+	ModelProviderCloudflare  ModelProvider = "Cloudflare"
 	ModelProviderCohere      ModelProvider = "Cohere"
 	ModelProviderOllama      ModelProvider = "Ollama"
 	ModelProviderBaseten     ModelProvider = "Baseten"

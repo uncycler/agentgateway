@@ -181,3 +181,27 @@ spec:
     guardrail:
       identifier: test-guardrail
       version: "1"
+---
+_err: cloudflare must be set if and only if provider is Cloudflare
+apiVersion: agentgateway.dev/v1alpha1
+kind: AgentgatewayModel
+metadata:
+  name: cloudflare-without-settings
+spec:
+  parentRefs:
+  - name: ai-gateway
+    sectionName: llm
+  provider: Cloudflare
+---
+_err: spec.cloudflare.accountId in body should match
+apiVersion: agentgateway.dev/v1alpha1
+kind: AgentgatewayModel
+metadata:
+  name: cloudflare-account-with-path
+spec:
+  parentRefs:
+  - name: ai-gateway
+    sectionName: llm
+  provider: Cloudflare
+  cloudflare:
+    accountId: abc/../def

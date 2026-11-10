@@ -1,0 +1,61 @@
+apiVersion: agentgateway.dev/v1alpha1
+kind: AgentgatewayBackend
+metadata:
+  name: cloudflare
+  namespace: default
+spec:
+  ai:
+    provider:
+      cloudflare:
+        accountId: 0123456789abcdef0123456789abcdef
+        model: "@cf/cloudflare/clef"
+  policies:
+    auth:
+      secretRef:
+        name: cloudflare-secret
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: cloudflare-secret
+  namespace: default
+data:
+  Authorization: QmVhcmVyIHRlc3Q=
+
+---
+# Output
+output:
+- gateway:
+    Name: basic
+    Namespace: default
+  resource:
+    backend:
+      ai:
+        providerGroups:
+        - providers:
+          - cloudflare:
+              accountId: 0123456789abcdef0123456789abcdef
+              model: '@cf/cloudflare/clef'
+            name: backend
+      inlinePolicies:
+      - auth:
+          key:
+            secret: test
+      key: default/cloudflare
+      name:
+        name: cloudflare
+        namespace: default
+status:
+- apiVersion: agentgateway.dev/v1alpha1
+  kind: AgentgatewayBackend
+  metadata:
+    name: cloudflare
+    namespace: default
+  spec: null
+  status:
+    conditions:
+    - lastTransitionTime: fake
+      message: Backend successfully accepted
+      reason: Accepted
+      status: "True"
+      type: Accepted

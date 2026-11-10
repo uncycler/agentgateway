@@ -160,6 +160,19 @@ spec:
                     or MantleOnly
                   rule: '!has(self.guardrail) || !has(self.endpointPreference) ||
                     !(self.endpointPreference in [''MantlePreferred'', ''MantleOnly''])'
+              cloudflare:
+                description: Provider-specific settings for Cloudflare Workers AI.
+                properties:
+                  accountId:
+                    description: The Cloudflare account ID that owns the Workers AI
+                      usage.
+                    maxLength: 256
+                    minLength: 1
+                    pattern: ^[A-Za-z0-9_-]+$
+                    type: string
+                required:
+                - accountId
+                type: object
               custom:
                 description: Provider-specific settings for a custom provider.
                 properties:
@@ -5346,6 +5359,7 @@ spec:
                 - Baseten
                 - Bedrock
                 - Cerebras
+                - Cloudflare
                 - Cohere
                 - Copilot
                 - Custom
@@ -5822,6 +5836,9 @@ spec:
                 'VertexAI')
             - message: bedrock must be set if and only if provider is Bedrock
               rule: has(self.bedrock) == (has(self.provider) && self.provider == 'Bedrock')
+            - message: cloudflare must be set if and only if provider is Cloudflare
+              rule: has(self.cloudflare) == (has(self.provider) && self.provider ==
+                'Cloudflare')
             - message: custom must be set if and only if provider is Custom
               rule: has(self.custom) == (has(self.provider) && self.provider == 'Custom')
             - message: exactly one of the fields in [provider virtualModel] must be

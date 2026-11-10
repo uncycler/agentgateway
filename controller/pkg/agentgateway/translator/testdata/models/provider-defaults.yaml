@@ -72,6 +72,22 @@ spec:
   provider: VertexAI
   vertexai:
     projectId: test-project
+---
+apiVersion: agentgateway.dev/v1alpha1
+kind: AgentgatewayModel
+metadata:
+  name: cloudflare
+  namespace: default
+spec:
+  match:
+    model: clef
+  parentRefs:
+  - group: gateway.networking.k8s.io
+    kind: Gateway
+    name: llm-only
+  provider: Cloudflare
+  cloudflare:
+    accountId: 0123456789abcdef0123456789abcdef
 
 ---
 # Output
@@ -107,6 +123,21 @@ output:
       key: default/bedrock/backend.llm
       name:
         name: bedrock
+        namespace: default
+- gateway:
+    Name: llm-only
+    Namespace: default
+  resource:
+    backend:
+      ai:
+        providerGroups:
+        - providers:
+          - cloudflare:
+              accountId: 0123456789abcdef0123456789abcdef
+            name: backend
+      key: default/cloudflare/backend.llm
+      name:
+        name: cloudflare
         namespace: default
 - gateway:
     Name: llm-only
@@ -198,6 +229,22 @@ output:
     modelRoute:
       concreteModel:
         backend:
+          backend: default/cloudflare/backend.llm
+        discoveryProvider: cloudflare.workers_ai
+        discoveryProviderConfig:
+          cloudflare:
+            accountId: 0123456789abcdef0123456789abcdef
+      key: default/cloudflare.llm
+      listenerKey: default/llm-only.llm
+      match:
+        model: clef
+- gateway:
+    Name: llm-only
+    Namespace: default
+  resource:
+    modelRoute:
+      concreteModel:
+        backend:
           backend: default/copilot/backend.llm
         discoveryProvider: copilot
         discoveryProviderConfig:
@@ -253,6 +300,31 @@ status:
   kind: AgentgatewayModel
   metadata:
     name: bedrock
+    namespace: default
+  spec: null
+  status:
+    parents:
+    - conditions:
+      - lastTransitionTime: fake
+        message: Successfully accepted AgentgatewayModel
+        reason: Accepted
+        status: "True"
+        type: Accepted
+      - lastTransitionTime: fake
+        message: ""
+        reason: ResolvedRefs
+        status: "True"
+        type: ResolvedRefs
+      controllerName: agentgateway.dev/agentgateway
+      parentRef:
+        group: gateway.networking.k8s.io
+        kind: Gateway
+        name: llm-only
+        namespace: default
+- apiVersion: agentgateway.dev/v1alpha1
+  kind: AgentgatewayModel
+  metadata:
+    name: cloudflare
     namespace: default
   spec: null
   status:
@@ -344,7 +416,7 @@ status:
       status: "True"
       type: Programmed
     listeners:
-    - attachedRoutes: 4
+    - attachedRoutes: 5
       conditions:
       - lastTransitionTime: fake
         message: No errors found

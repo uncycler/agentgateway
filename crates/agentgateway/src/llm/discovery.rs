@@ -84,6 +84,8 @@ impl ModelDiscovery {
 			return Vec::new();
 		};
 		let custom = matches!(provider, AIProvider::Custom(_));
+		// Workers AI serves System One natively and Decisions through translation to it.
+		let cloudflare = matches!(provider, AIProvider::Cloudflare(_));
 		let entry = catalog.model(&self.provider, model);
 		let mut endpoints = provider
 			.supported_chat_formats(model, Some(catalog))
@@ -119,12 +121,15 @@ impl ModelDiscovery {
 							Some("/rerank")
 						},
 						ProviderFormat::Decisions if custom => Some("/decisions"),
-						ProviderFormat::SystemOne if custom => Some("/systemone"),
+						ProviderFormat::SystemOne if custom || cloudflare => Some("/systemone"),
 						ProviderFormat::AnthropicTokenCount if custom => Some("/messages/count_tokens"),
 						ProviderFormat::GeminiCountTokens if custom => Some("/models/{model}:countTokens"),
 						_ => None,
 					}),
 			);
+		}
+		if cloudflare && endpoints.contains(&"/systemone") {
+			endpoints.push("/decisions");
 		}
 		if let Some(served) = served {
 			// Image and audio requests are forwarded with their OpenAI-style paths.

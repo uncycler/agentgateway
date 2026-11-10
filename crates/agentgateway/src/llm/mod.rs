@@ -11,8 +11,8 @@ pub use agent_llm::{
 	AIError, CacheTokenConvention, ChatFormat, ContentScope, DetectedOperation, InputFormat, LLMInfo,
 	LLMRequest, LLMRequestParams, LLMResponse, LogContentFields, PromptCachingConfig, Provider,
 	ProviderState, RequestType, ResponseText, ResponseType, RouteType, SimpleChatCompletionMessage,
-	TokenGapSummary, anthropic, conversion, copilot, custom, gemini, logged_response_parsing, openai,
-	types,
+	TokenGapSummary, anthropic, cloudflare, conversion, copilot, custom, gemini,
+	logged_response_parsing, openai, types,
 };
 use axum_extra::headers::authorization::Bearer;
 use headers::{ContentEncoding, HeaderMapExt};
@@ -62,6 +62,8 @@ fn set_default_anthropic_version(headers: &mut HeaderMap) {
 
 #[cfg(test)]
 mod anthropic_tests;
+#[cfg(test)]
+mod cloudflare_tests;
 #[cfg(test)]
 mod gemini_tests;
 
@@ -158,6 +160,7 @@ pub enum AIProvider {
 	Bedrock(BedrockProvider),
 	Azure(AzureProvider),
 	Copilot(copilot::Provider),
+	Cloudflare(cloudflare::Provider),
 	Custom(custom::Provider),
 }
 
@@ -1007,6 +1010,7 @@ impl AIProvider {
 			AIProvider::Bedrock(_p) => bedrock::Provider::NAME,
 			AIProvider::Azure(_p) => azure::Provider::NAME,
 			AIProvider::Copilot(_p) => copilot::Provider::NAME,
+			AIProvider::Cloudflare(_p) => cloudflare::Provider::NAME,
 			AIProvider::Custom(p) => p
 				.provider_override
 				.clone()
@@ -1031,6 +1035,7 @@ impl AIProvider {
 			AIProvider::Bedrock(p) => p.model_override.clone(),
 			AIProvider::Azure(p) => p.model_override.clone(),
 			AIProvider::Copilot(p) => p.model_override.clone(),
+			AIProvider::Cloudflare(p) => p.model_override.clone(),
 			AIProvider::Custom(p) => p.model_override.clone(),
 		}
 	}
@@ -1086,6 +1091,13 @@ impl AIProvider {
 				formats.extend([Embeddings, Rerank]);
 				formats
 			},
+			AIProvider::Cloudflare(_) => {
+				let mut formats = vec![Completions, Embeddings, Rerank, SystemOne];
+				if cloudflare::Provider::is_openai_model(request_model) {
+					formats.push(Responses);
+				}
+				formats
+			},
 			AIProvider::Custom(p) => p.formats.iter().map(|f| f.format).collect(),
 		}
 	}
@@ -1125,6 +1137,11 @@ impl AIProvider {
 				vec![ChatFormat::VertexGemini, ChatFormat::OpenAICompletions]
 			},
 			AIProvider::Vertex(_) => vec![ChatFormat::OpenAICompletions],
+
+			AIProvider::Cloudflare(_) if cloudflare::Provider::is_openai_model(request_model) => {
+				vec![ChatFormat::OpenAIResponses, ChatFormat::OpenAICompletions]
+			},
+			AIProvider::Cloudflare(_) => vec![ChatFormat::OpenAICompletions],
 
 			AIProvider::Custom(p) => p
 				.formats
@@ -1227,7 +1244,10 @@ impl AIProvider {
 			..Default::default()
 		};
 		Some(match self {
-			AIProvider::OpenAI(_) | AIProvider::Gemini(_) | AIProvider::Anthropic(_) => btls,
+			AIProvider::OpenAI(_)
+			| AIProvider::Gemini(_)
+			| AIProvider::Anthropic(_)
+			| AIProvider::Cloudflare(_) => btls,
 			AIProvider::Copilot(_) => BackendPolicies {
 				backend_auth: Some(BackendAuth::new(BackendAuthKind::Copilot)),
 				..btls
@@ -1276,6 +1296,7 @@ impl AIProvider {
 				Target::Hostname(p.get_host(route_type, endpoint), 443)
 			},
 			AIProvider::Azure(p) => Target::Hostname(p.get_host(route_type), 443),
+			AIProvider::Cloudflare(_) => Target::Hostname(cloudflare::DEFAULT_HOST, 443),
 			AIProvider::Custom(_) => return None,
 		})
 	}
@@ -1546,6 +1567,17 @@ impl AIProvider {
 				})?;
 				Ok(())
 			}),
+			AIProvider::Cloudflare(provider) => http::modify_req(req, |req| {
+				http::modify_uri(req, |uri| {
+					if let Some(l) = llm_request {
+						let path = provider.get_path_for_model(route_type, l.request_model.as_str())?;
+						let path = Self::with_path_prefix(&path, path_prefix);
+						Self::set_path_and_query(uri, &path)?;
+					}
+					Ok(())
+				})?;
+				Ok(())
+			}),
 			AIProvider::Custom(provider) => {
 				// The native Gemini formats embed the model in the path and pick the method by
 				// streaming, which a static configured path cannot express, so their default is
@@ -1609,6 +1641,7 @@ impl AIProvider {
 			AIProvider::Gemini(_) => Authority::from_static(gemini::DEFAULT_HOST_STR),
 			AIProvider::Vertex(provider) => Authority::from_str(&provider.get_host(route_type))?,
 			AIProvider::Azure(provider) => Authority::from_str(&provider.get_host(route_type))?,
+			AIProvider::Cloudflare(_) => Authority::from_static(cloudflare::DEFAULT_HOST_STR),
 			AIProvider::Custom(_) => return Ok(()),
 			AIProvider::Bedrock(provider) => {
 				let endpoint = bedrock_endpoint.expect("setup_request resolves the Bedrock endpoint");
@@ -2018,7 +2051,7 @@ impl AIProvider {
 					Some(custom::ProviderFormat::SystemOne) => {
 						let (body, state) = conversion::systemone::from_decisions::translate(req)?;
 						llm.provider_state = Some(ProviderState::SystemOneDecisions(Arc::new(state)));
-						Ok(body)
+						provider.finalize_systemone_body(body)
 					},
 					_ => serde_json::to_vec(req).map_err(AIError::RequestMarshal),
 				},
@@ -2057,7 +2090,8 @@ impl AIProvider {
 						llm.provider_state = Some(ProviderState::DecisionsSystemOne(Arc::new(state)));
 						Ok(body)
 					},
-					_ => serde_json::to_vec(req).map_err(AIError::RequestMarshal),
+					_ => provider
+						.finalize_systemone_body(serde_json::to_vec(req).map_err(AIError::RequestMarshal)?),
 				},
 			)
 			.await
@@ -2423,7 +2457,8 @@ impl AIProvider {
 			| AIProvider::OpenAI(_)
 			| AIProvider::Azure(_)
 			| AIProvider::Gemini(_)
-			| AIProvider::Anthropic(_) => serde_json::to_vec(req).map_err(AIError::RequestMarshal),
+			| AIProvider::Anthropic(_)
+			| AIProvider::Cloudflare(_) => serde_json::to_vec(req).map_err(AIError::RequestMarshal),
 			AIProvider::Copilot(_) => conversion::copilot::from_embeddings::translate(req),
 			AIProvider::Vertex(p) => conversion::vertex::from_embeddings::translate(req, p),
 			AIProvider::Bedrock(_) => conversion::bedrock::from_embeddings::translate(req),
@@ -2440,6 +2475,23 @@ impl AIProvider {
 			| AIProvider::Anthropic(_) => serde_json::to_vec(req).map_err(AIError::RequestMarshal),
 			AIProvider::Vertex(p) => conversion::vertex::from_rerank::translate(req, p),
 			AIProvider::Bedrock(p) => conversion::bedrock::from_rerank::translate(req, p),
+			AIProvider::Cloudflare(_) => conversion::cloudflare::from_rerank::translate(req),
+		}
+	}
+
+	/// Clef addresses itself by its full id in the path but only accepts its short name in the body.
+	fn finalize_systemone_body(&self, body: Vec<u8>) -> Result<Vec<u8>, AIError> {
+		match self {
+			AIProvider::Cloudflare(_) => cloudflare::finalize_systemone_body(body),
+			_ => Ok(body),
+		}
+	}
+
+	/// Remove a provider's success envelope from a native (non OpenAI-compatible) response.
+	fn unwrap_native_response(&self, bytes: Bytes) -> Result<Bytes, AIError> {
+		match self {
+			AIProvider::Cloudflare(_) => cloudflare::unwrap_result(bytes),
+			_ => Ok(bytes),
 		}
 	}
 
@@ -3183,6 +3235,13 @@ impl AIProvider {
 				let body = translated.serialize().map_err(AIError::ResponseParsing)?;
 				Ok((llm_resp, Bytes::from(body)))
 			},
+			AIProvider::Cloudflare(_) => {
+				let bytes = self.unwrap_native_response(bytes)?;
+				let translated = conversion::cloudflare::from_rerank::translate_response(&bytes)?;
+				let llm_resp = translated.to_llm_response(LogContentFields::default());
+				let body = translated.serialize().map_err(AIError::ResponseParsing)?;
+				Ok((llm_resp, Bytes::from(body)))
+			},
 			_ => {
 				let resp =
 					types::rerank::parse_response_lenient(&bytes).map_err(logged_response_parsing(&bytes))?;
@@ -3197,9 +3256,12 @@ impl AIProvider {
 		bytes: Bytes,
 	) -> Result<(LLMResponse, Bytes), AIError> {
 		let bytes = match &req.provider_state {
-			Some(ProviderState::SystemOneDecisions(state)) => Bytes::from(
-				conversion::systemone::from_decisions::translate_response(&bytes, state)?,
-			),
+			Some(ProviderState::SystemOneDecisions(state)) => {
+				let bytes = self.unwrap_native_response(bytes)?;
+				Bytes::from(conversion::systemone::from_decisions::translate_response(
+					&bytes, state,
+				)?)
+			},
 			_ => bytes,
 		};
 		let resp: types::decisions::Response =
@@ -3216,7 +3278,7 @@ impl AIProvider {
 			Some(ProviderState::DecisionsSystemOne(state)) => Bytes::from(
 				conversion::systemone::from_systemone::translate_response(&bytes, state)?,
 			),
-			_ => bytes,
+			_ => self.unwrap_native_response(bytes)?,
 		};
 		let resp: types::systemone::Response =
 			serde_json::from_slice(&bytes).map_err(logged_response_parsing(&bytes))?;
@@ -3562,6 +3624,15 @@ impl AIProvider {
 		bytes: &Bytes,
 		catalog: agent_llm::model_catalog::Catalog<'_>,
 	) -> Result<Bytes, AIError> {
+		// Cloudflare reports errors in its v4 envelope; start every translation from the OpenAI shape.
+		let normalized;
+		let bytes = match self {
+			AIProvider::Cloudflare(_) => {
+				normalized = cloudflare::normalize_error(bytes, status)?;
+				&normalized
+			},
+			_ => bytes,
+		};
 		if req.input_format.is_chat() {
 			let translation = self.chat_translation(req.input_format, &req.request_model, catalog)?;
 			return translation.error(
@@ -3573,7 +3644,10 @@ impl AIProvider {
 		match (self, req.input_format) {
 			(AIProvider::Custom(_), InputFormat::Embeddings) => Ok(bytes.clone()),
 			(
-				AIProvider::OpenAI(_) | AIProvider::Copilot(_) | AIProvider::Azure(_),
+				AIProvider::OpenAI(_)
+				| AIProvider::Copilot(_)
+				| AIProvider::Azure(_)
+				| AIProvider::Cloudflare(_),
 				InputFormat::Embeddings,
 			) => {
 				// Passthrough; nothing needed
@@ -3602,7 +3676,10 @@ impl AIProvider {
 			},
 			(AIProvider::Custom(_), InputFormat::Rerank) => Ok(bytes.clone()),
 			(
-				AIProvider::OpenAI(_) | AIProvider::Copilot(_) | AIProvider::Azure(_),
+				AIProvider::OpenAI(_)
+				| AIProvider::Copilot(_)
+				| AIProvider::Azure(_)
+				| AIProvider::Cloudflare(_),
 				InputFormat::Rerank,
 			) => Ok(bytes.clone()),
 			(AIProvider::Bedrock(_), InputFormat::Rerank) => {

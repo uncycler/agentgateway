@@ -241,6 +241,17 @@ export function ProviderConfigEditor(props: {
 							/>
 						</Field>
 					) : null}
+					{provider === 'cloudflare' ? (
+						<Field
+							label="Cloudflare account ID"
+							tooltip={props.help.field<LlmParams>('LocalLLMParams', 'cloudflareAccountId')}
+						>
+							<input
+								value={props.params?.cloudflareAccountId ?? ''}
+								onChange={event => patchParams({ cloudflareAccountId: event.target.value || null })}
+							/>
+						</Field>
+					) : null}
 					{provider === 'azure' ? (
 						<div className="form-grid">
 							<Field

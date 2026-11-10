@@ -2000,6 +2000,13 @@ message AIBackend {
     OPEN_AI = 0;
     FOUNDRY = 1;
   }
+  // Cloudflare Workers AI.
+  message Cloudflare {
+    // Optional model name override.
+    optional string model = 1;
+    // The Cloudflare account ID that owns the Workers AI usage.
+    string account_id = 2;
+  }
   enum ProviderFormat {
     PROVIDER_FORMAT_UNSPECIFIED = 0;
     COMPLETIONS = 1;
@@ -2074,6 +2081,7 @@ message AIBackend {
       Custom custom = 15;
       ProviderPreset provider_preset = 16;
       Copilot copilot = 19;
+      Cloudflare cloudflare = 20;
     }
     repeated BackendPolicySpec inline_policies = 10;
   }

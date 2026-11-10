@@ -947,6 +947,7 @@ pub enum LocalBuiltinModelAIProvider {
 	Bedrock,
 	Azure,
 	Copilot,
+	Cloudflare,
 	Custom(custom::Provider),
 }
 
@@ -988,6 +989,8 @@ pub struct LocalLLMParams {
 	azure_api_version: Option<Strng>,
 	/// For Azure: the Foundry project name (required for foundry resource type)
 	azure_project_name: Option<Strng>,
+	/// For Cloudflare: the account ID that owns the Workers AI usage
+	cloudflare_account_id: Option<Strng>,
 	/// Base URL for the upstream provider. Expands to hostOverride, pathPrefix, and tls for https URLs.
 	/// The URL path is the upstream base path and defaults to / when omitted.
 	/// Provider-specific endpoint paths are appended to this base path.
@@ -1026,6 +1029,7 @@ impl LocalLLMModels {
 			azure_resource_type: None,
 			azure_api_version: None,
 			azure_project_name: None,
+			cloudflare_account_id: None,
 			base_url: None,
 			host_override: None,
 			path_override: None,
@@ -4600,6 +4604,7 @@ fn ensure_ai_provider_model(provider: &mut AIProvider, model: &str) {
 		AIProvider::Vertex(p) => p.model_override = p.model_override.clone().or_else(model),
 		AIProvider::Bedrock(p) => p.model_override = p.model_override.clone().or_else(model),
 		AIProvider::Azure(p) => p.model_override = p.model_override.clone().or_else(model),
+		AIProvider::Cloudflare(p) => p.model_override = p.model_override.clone().or_else(model),
 	}
 }
 
@@ -4818,6 +4823,14 @@ async fn convert_llm_config(
 						.context("azure requires azureResourceType")?,
 					api_version: p.azure_api_version,
 					project_name: p.azure_project_name,
+				})
+			},
+			LocalModelAIProvider::Builtin(LocalBuiltinModelAIProvider::Cloudflare) => {
+				AIProvider::Cloudflare(crate::llm::cloudflare::Provider {
+					model_override: model,
+					account_id: p
+						.cloudflare_account_id
+						.context("cloudflare requires cloudflareAccountId")?,
 				})
 			},
 		};

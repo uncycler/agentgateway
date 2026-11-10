@@ -9703,6 +9703,18 @@
         {
           "type": "object",
           "properties": {
+            "cloudflare": {
+              "$ref": "#/$defs/CloudflareProvider"
+            }
+          },
+          "required": [
+            "cloudflare"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
             "custom": {
               "$ref": "#/$defs/CustomProvider"
             }
@@ -9994,6 +10006,26 @@
         }
       },
       "additionalProperties": false
+    },
+    "CloudflareProvider": {
+      "type": "object",
+      "properties": {
+        "model": {
+          "description": "Model ID to send to Workers AI, overriding the model in the client request.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "accountId": {
+          "description": "The Cloudflare account ID that owns the Workers AI usage.",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "accountId"
+      ]
     },
     "CustomProvider": {
       "type": "object",
@@ -12830,6 +12862,13 @@
             "null"
           ]
         },
+        "cloudflareAccountId": {
+          "description": "For Cloudflare: the account ID that owns the Workers AI usage",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "baseUrl": {
           "description": "Base URL for the upstream provider. Expands to hostOverride, pathPrefix, and tls for https URLs.\nThe URL path is the upstream base path and defaults to / when omitted.\nProvider-specific endpoint paths are appended to this base path.\nFor example, `https://api.openai.com/v1` sends completions to `/v1/chat/completions`,\nwhile `https://api.openai.com` sends them to `/chat/completions`.",
           "type": [
@@ -12898,7 +12937,8 @@
             "anthropic",
             "bedrock",
             "azure",
-            "copilot"
+            "copilot",
+            "cloudflare"
           ]
         },
         {

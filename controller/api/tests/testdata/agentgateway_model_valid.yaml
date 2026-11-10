@@ -229,3 +229,17 @@ spec:
     guardrail:
       identifier: test-guardrail
       version: "1"
+---
+apiVersion: agentgateway.dev/v1alpha1
+kind: AgentgatewayModel
+metadata:
+  name: cloudflare-clef
+spec:
+  parentRefs:
+  - name: ai-gateway
+    sectionName: llm
+  match:
+    model: clef
+  provider: Cloudflare
+  cloudflare:
+    accountId: 0123456789abcdef0123456789abcdef

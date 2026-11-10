@@ -29,13 +29,14 @@ func init() {
 
 var modelsDevProviderIDs = map[string]string{
 	// Native providers, each backed by a dedicated gateway provider implementation.
-	"openai":         "openai",
-	"anthropic":      "anthropic",
-	"amazon-bedrock": "aws.bedrock",
-	"google":         "gcp.gemini",
-	"google-vertex":  "gcp.vertex_ai",
-	"azure":          "azure",
-	"github-copilot": "copilot",
+	"openai":                "openai",
+	"anthropic":             "anthropic",
+	"amazon-bedrock":        "aws.bedrock",
+	"google":                "gcp.gemini",
+	"google-vertex":         "gcp.vertex_ai",
+	"azure":                 "azure",
+	"github-copilot":        "copilot",
+	"cloudflare-workers-ai": "cloudflare.workers_ai",
 	// TODO: not yet exposed at cost time — proxy resolves these custom-backed providers as "custom".
 	"cohere":           "cohere",
 	"baseten":          "baseten",

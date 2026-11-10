@@ -613,6 +613,13 @@ func translateLLMProvider(ctx plugins.PolicyCtx, namespace string, llm *agentgat
 				EndpointPreference:  endpointPreference,
 			},
 		}
+	} else if llm.Cloudflare != nil {
+		provider.Provider = &api.AIBackend_Provider_Cloudflare{
+			Cloudflare: &api.AIBackend_Cloudflare{
+				AccountId: llm.Cloudflare.AccountID,
+				Model:     llm.Cloudflare.Model,
+			},
+		}
 	} else if llm.Custom != nil {
 		formats, err := plugins.TranslateCustomProviderFormats(llm.Custom.Formats)
 		if err != nil {

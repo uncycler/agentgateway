@@ -1,0 +1,40 @@
+# yaml-language-server: $schema=https://agentgateway.dev/schema/config
+gateways:
+  default:
+    port: 4000
+llm:
+  providers:
+  - name: workers-ai
+    provider: cloudflare
+    params:
+      cloudflareAccountId: $CLOUDFLARE_ACCOUNT_ID
+      apiKey: $CLOUDFLARE_AUTH_TOKEN
+  models:
+  # Decision models: /v1/decisions and /v1/systemone.
+  - name: clef
+    provider:
+      reference: workers-ai
+  - name: clef-flash
+    provider:
+      reference: workers-ai
+  # Chat: /v1/chat/completions, /v1/messages and /v1/responses.
+  - name: llama
+    provider:
+      reference: workers-ai
+    params:
+      model: "@cf/meta/llama-3.3-70b-instruct-fp8-fast"
+  # Embeddings and reranking: /v1/embeddings and /v1/rerank.
+  - name: bge-m3
+    provider:
+      reference: workers-ai
+    params:
+      model: "@cf/baai/bge-m3"
+  - name: bge-reranker
+    provider:
+      reference: workers-ai
+    params:
+      model: "@cf/baai/bge-reranker-base"
+  # Any other Workers AI model, by its id.
+  - name: "@cf/*"
+    provider:
+      reference: workers-ai

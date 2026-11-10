@@ -10,6 +10,37 @@ providers:
         tags: [adaptive_thinking]
       "*sonnet-4.6*":
         tags: [adaptive_thinking]
+  # Clef decision models are not listed on models.dev. Clef accepts its short name as well as its
+  # Workers AI id. Rates: https://developers.cloudflare.com/workers-ai/models/clef/
+  cloudflare.workers_ai:
+    models:
+      "@cf/cloudflare/clef": &clef
+        name: Clef
+        rates:
+          input: "0.24"
+          output: "0"
+        limits:
+          context: 65536
+        endpoints: &clef-endpoints [/decisions, /systemone]
+      clef: *clef
+      "@cf/cloudflare/clef-flash": &clef-flash
+        name: Clef Flash
+        rates:
+          input: "0.038"
+          output: "0"
+        limits:
+          context: 24576
+        endpoints: *clef-endpoints
+      clef-flash: *clef-flash
+      "@cf/cloudflare/clef-omni": &clef-omni
+        name: Clef Omni
+        rates:
+          input: "0.15"
+          output: "0"
+        limits:
+          context: 64000
+        endpoints: *clef-endpoints
+      clef-omni: *clef-omni
   # TODO: drop once https://github.com/anomalyco/models.dev/pull/10060 lands and models.dev maps typesafe.
   typesafe:
     models:

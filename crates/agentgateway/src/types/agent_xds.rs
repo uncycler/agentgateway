@@ -138,6 +138,7 @@ fn override_ai_provider_model(provider: &mut AIProvider, model: &str) {
 		AIProvider::Vertex(provider) => provider.model_override = model,
 		AIProvider::Bedrock(provider) => provider.model_override = model,
 		AIProvider::Azure(provider) => provider.model_override = model,
+		AIProvider::Cloudflare(provider) => provider.model_override = model,
 	}
 }
 
@@ -2180,6 +2181,17 @@ fn ai_provider_from_proto(
 				resource_type,
 				api_version: azure.api_version.as_deref().map(strng::new),
 				project_name: azure.project_name.as_deref().map(strng::new),
+			})
+		},
+		Some(provider::Provider::Cloudflare(cloudflare)) => {
+			if cloudflare.account_id.is_empty() {
+				return Err(ProtoError::Generic(format!(
+					"AI backend cloudflare provider at index {provider_idx} requires an account ID"
+				)));
+			}
+			AIProvider::Cloudflare(llm::cloudflare::Provider {
+				model_override: cloudflare.model.as_deref().map(strng::new),
+				account_id: strng::new(&cloudflare.account_id),
 			})
 		},
 		Some(provider::Provider::Azureopenai(_)) => {

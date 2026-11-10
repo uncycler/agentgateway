@@ -723,7 +723,7 @@
 |`binds[].listeners[].routes[].backends[].mcp.server.instructions`|string|Overrides the gateway preamble prepended to merged upstream instructions.<br>Defaults to a generic gateway description when unset.|
 |`binds[].listeners[].routes[].backends[].ai`|object||
 |`binds[].listeners[].routes[].backends[].ai.name`|string|Name identifying this provider, referenced by `llm.models[].provider`.|
-|`binds[].listeners[].routes[].backends[].ai.provider`|object|The upstream LLM provider type and its configuration.<br>Exactly one of openAI, gemini, vertex, anthropic, bedrock, azure, copilot, or custom may be set.|
+|`binds[].listeners[].routes[].backends[].ai.provider`|object|The upstream LLM provider type and its configuration.<br>Exactly one of openAI, gemini, vertex, anthropic, bedrock, azure, copilot, cloudflare, or custom may be set.|
 |`binds[].listeners[].routes[].backends[].ai.provider.openAI`|object||
 |`binds[].listeners[].routes[].backends[].ai.provider.openAI.model`|string|Model ID to send to OpenAI, overriding the model in the client request.|
 |`binds[].listeners[].routes[].backends[].ai.provider.openAI.moderation`|object|Configuration for running OpenAI inline moderation on request input and generated output.|
@@ -755,6 +755,9 @@
 |`binds[].listeners[].routes[].backends[].ai.provider.azure.projectName`|string|The Foundry project name for project-scoped OpenAI-compatible APIs.<br>Used to construct paths: `/api/projects/{projectName}/openai/v1/...`.<br>This is distinct from `resourceName` which is used for the host.|
 |`binds[].listeners[].routes[].backends[].ai.provider.copilot`|object||
 |`binds[].listeners[].routes[].backends[].ai.provider.copilot.model`|string|Model ID to send to GitHub Copilot, overriding the model in the client request.|
+|`binds[].listeners[].routes[].backends[].ai.provider.cloudflare`|object||
+|`binds[].listeners[].routes[].backends[].ai.provider.cloudflare.model`|string|Model ID to send to Workers AI, overriding the model in the client request.|
+|`binds[].listeners[].routes[].backends[].ai.provider.cloudflare.accountId`|string|The Cloudflare account ID that owns the Workers AI usage.|
 |`binds[].listeners[].routes[].backends[].ai.provider.custom`|object||
 |`binds[].listeners[].routes[].backends[].ai.provider.custom.model`|string|Model ID to send to the provider, overriding the model in the client request.|
 |`binds[].listeners[].routes[].backends[].ai.provider.custom.providerOverride`|string|Provider identity for cost-catalog lookup and telemetry. Built-in named providers<br>(cohere, mistral, ...) set this so their cost resolves under the right catalog key;<br>a bare custom provider may set it to match a catalog entry. Falls back to "custom".|
@@ -933,7 +936,7 @@
 |`binds[].listeners[].routes[].backends[].ai.groups`|[]object||
 |`binds[].listeners[].routes[].backends[].ai.groups[].providers`|[]object|LLM providers in this group, load balanced together.|
 |`binds[].listeners[].routes[].backends[].ai.groups[].providers[].name`|string|Name identifying this provider, referenced by `llm.models[].provider`.|
-|`binds[].listeners[].routes[].backends[].ai.groups[].providers[].provider`|object|The upstream LLM provider type and its configuration.<br>Exactly one of openAI, gemini, vertex, anthropic, bedrock, azure, copilot, or custom may be set.|
+|`binds[].listeners[].routes[].backends[].ai.groups[].providers[].provider`|object|The upstream LLM provider type and its configuration.<br>Exactly one of openAI, gemini, vertex, anthropic, bedrock, azure, copilot, cloudflare, or custom may be set.|
 |`binds[].listeners[].routes[].backends[].ai.groups[].providers[].provider.openAI`|object||
 |`binds[].listeners[].routes[].backends[].ai.groups[].providers[].provider.openAI.model`|string|Model ID to send to OpenAI, overriding the model in the client request.|
 |`binds[].listeners[].routes[].backends[].ai.groups[].providers[].provider.openAI.moderation`|object|Configuration for running OpenAI inline moderation on request input and generated output.|
@@ -965,6 +968,9 @@
 |`binds[].listeners[].routes[].backends[].ai.groups[].providers[].provider.azure.projectName`|string|The Foundry project name for project-scoped OpenAI-compatible APIs.<br>Used to construct paths: `/api/projects/{projectName}/openai/v1/...`.<br>This is distinct from `resourceName` which is used for the host.|
 |`binds[].listeners[].routes[].backends[].ai.groups[].providers[].provider.copilot`|object||
 |`binds[].listeners[].routes[].backends[].ai.groups[].providers[].provider.copilot.model`|string|Model ID to send to GitHub Copilot, overriding the model in the client request.|
+|`binds[].listeners[].routes[].backends[].ai.groups[].providers[].provider.cloudflare`|object||
+|`binds[].listeners[].routes[].backends[].ai.groups[].providers[].provider.cloudflare.model`|string|Model ID to send to Workers AI, overriding the model in the client request.|
+|`binds[].listeners[].routes[].backends[].ai.groups[].providers[].provider.cloudflare.accountId`|string|The Cloudflare account ID that owns the Workers AI usage.|
 |`binds[].listeners[].routes[].backends[].ai.groups[].providers[].provider.custom`|object||
 |`binds[].listeners[].routes[].backends[].ai.groups[].providers[].provider.custom.model`|string|Model ID to send to the provider, overriding the model in the client request.|
 |`binds[].listeners[].routes[].backends[].ai.groups[].providers[].provider.custom.providerOverride`|string|Provider identity for cost-catalog lookup and telemetry. Built-in named providers<br>(cohere, mistral, ...) set this so their cost resolves under the right catalog key;<br>a bare custom provider may set it to match a catalog entry. Falls back to "custom".|
@@ -2290,7 +2296,7 @@
 |`backends[].mcp.server.instructions`|string|Overrides the gateway preamble prepended to merged upstream instructions.<br>Defaults to a generic gateway description when unset.|
 |`backends[].ai`|object||
 |`backends[].ai.name`|string|Name identifying this provider, referenced by `llm.models[].provider`.|
-|`backends[].ai.provider`|object|The upstream LLM provider type and its configuration.<br>Exactly one of openAI, gemini, vertex, anthropic, bedrock, azure, copilot, or custom may be set.|
+|`backends[].ai.provider`|object|The upstream LLM provider type and its configuration.<br>Exactly one of openAI, gemini, vertex, anthropic, bedrock, azure, copilot, cloudflare, or custom may be set.|
 |`backends[].ai.provider.openAI`|object||
 |`backends[].ai.provider.openAI.model`|string|Model ID to send to OpenAI, overriding the model in the client request.|
 |`backends[].ai.provider.openAI.moderation`|object|Configuration for running OpenAI inline moderation on request input and generated output.|
@@ -2322,6 +2328,9 @@
 |`backends[].ai.provider.azure.projectName`|string|The Foundry project name for project-scoped OpenAI-compatible APIs.<br>Used to construct paths: `/api/projects/{projectName}/openai/v1/...`.<br>This is distinct from `resourceName` which is used for the host.|
 |`backends[].ai.provider.copilot`|object||
 |`backends[].ai.provider.copilot.model`|string|Model ID to send to GitHub Copilot, overriding the model in the client request.|
+|`backends[].ai.provider.cloudflare`|object||
+|`backends[].ai.provider.cloudflare.model`|string|Model ID to send to Workers AI, overriding the model in the client request.|
+|`backends[].ai.provider.cloudflare.accountId`|string|The Cloudflare account ID that owns the Workers AI usage.|
 |`backends[].ai.provider.custom`|object||
 |`backends[].ai.provider.custom.model`|string|Model ID to send to the provider, overriding the model in the client request.|
 |`backends[].ai.provider.custom.providerOverride`|string|Provider identity for cost-catalog lookup and telemetry. Built-in named providers<br>(cohere, mistral, ...) set this so their cost resolves under the right catalog key;<br>a bare custom provider may set it to match a catalog entry. Falls back to "custom".|
@@ -2500,7 +2509,7 @@
 |`backends[].ai.groups`|[]object||
 |`backends[].ai.groups[].providers`|[]object|LLM providers in this group, load balanced together.|
 |`backends[].ai.groups[].providers[].name`|string|Name identifying this provider, referenced by `llm.models[].provider`.|
-|`backends[].ai.groups[].providers[].provider`|object|The upstream LLM provider type and its configuration.<br>Exactly one of openAI, gemini, vertex, anthropic, bedrock, azure, copilot, or custom may be set.|
+|`backends[].ai.groups[].providers[].provider`|object|The upstream LLM provider type and its configuration.<br>Exactly one of openAI, gemini, vertex, anthropic, bedrock, azure, copilot, cloudflare, or custom may be set.|
 |`backends[].ai.groups[].providers[].provider.openAI`|object||
 |`backends[].ai.groups[].providers[].provider.openAI.model`|string|Model ID to send to OpenAI, overriding the model in the client request.|
 |`backends[].ai.groups[].providers[].provider.openAI.moderation`|object|Configuration for running OpenAI inline moderation on request input and generated output.|
@@ -2532,6 +2541,9 @@
 |`backends[].ai.groups[].providers[].provider.azure.projectName`|string|The Foundry project name for project-scoped OpenAI-compatible APIs.<br>Used to construct paths: `/api/projects/{projectName}/openai/v1/...`.<br>This is distinct from `resourceName` which is used for the host.|
 |`backends[].ai.groups[].providers[].provider.copilot`|object||
 |`backends[].ai.groups[].providers[].provider.copilot.model`|string|Model ID to send to GitHub Copilot, overriding the model in the client request.|
+|`backends[].ai.groups[].providers[].provider.cloudflare`|object||
+|`backends[].ai.groups[].providers[].provider.cloudflare.model`|string|Model ID to send to Workers AI, overriding the model in the client request.|
+|`backends[].ai.groups[].providers[].provider.cloudflare.accountId`|string|The Cloudflare account ID that owns the Workers AI usage.|
 |`backends[].ai.groups[].providers[].provider.custom`|object||
 |`backends[].ai.groups[].providers[].provider.custom.model`|string|Model ID to send to the provider, overriding the model in the client request.|
 |`backends[].ai.groups[].providers[].provider.custom.providerOverride`|string|Provider identity for cost-catalog lookup and telemetry. Built-in named providers<br>(cohere, mistral, ...) set this so their cost resolves under the right catalog key;<br>a bare custom provider may set it to match a catalog entry. Falls back to "custom".|
@@ -3433,7 +3445,7 @@
 |`routeGroups[].routes[].backends[].mcp.server.instructions`|string|Overrides the gateway preamble prepended to merged upstream instructions.<br>Defaults to a generic gateway description when unset.|
 |`routeGroups[].routes[].backends[].ai`|object||
 |`routeGroups[].routes[].backends[].ai.name`|string|Name identifying this provider, referenced by `llm.models[].provider`.|
-|`routeGroups[].routes[].backends[].ai.provider`|object|The upstream LLM provider type and its configuration.<br>Exactly one of openAI, gemini, vertex, anthropic, bedrock, azure, copilot, or custom may be set.|
+|`routeGroups[].routes[].backends[].ai.provider`|object|The upstream LLM provider type and its configuration.<br>Exactly one of openAI, gemini, vertex, anthropic, bedrock, azure, copilot, cloudflare, or custom may be set.|
 |`routeGroups[].routes[].backends[].ai.provider.openAI`|object||
 |`routeGroups[].routes[].backends[].ai.provider.openAI.model`|string|Model ID to send to OpenAI, overriding the model in the client request.|
 |`routeGroups[].routes[].backends[].ai.provider.openAI.moderation`|object|Configuration for running OpenAI inline moderation on request input and generated output.|
@@ -3465,6 +3477,9 @@
 |`routeGroups[].routes[].backends[].ai.provider.azure.projectName`|string|The Foundry project name for project-scoped OpenAI-compatible APIs.<br>Used to construct paths: `/api/projects/{projectName}/openai/v1/...`.<br>This is distinct from `resourceName` which is used for the host.|
 |`routeGroups[].routes[].backends[].ai.provider.copilot`|object||
 |`routeGroups[].routes[].backends[].ai.provider.copilot.model`|string|Model ID to send to GitHub Copilot, overriding the model in the client request.|
+|`routeGroups[].routes[].backends[].ai.provider.cloudflare`|object||
+|`routeGroups[].routes[].backends[].ai.provider.cloudflare.model`|string|Model ID to send to Workers AI, overriding the model in the client request.|
+|`routeGroups[].routes[].backends[].ai.provider.cloudflare.accountId`|string|The Cloudflare account ID that owns the Workers AI usage.|
 |`routeGroups[].routes[].backends[].ai.provider.custom`|object||
 |`routeGroups[].routes[].backends[].ai.provider.custom.model`|string|Model ID to send to the provider, overriding the model in the client request.|
 |`routeGroups[].routes[].backends[].ai.provider.custom.providerOverride`|string|Provider identity for cost-catalog lookup and telemetry. Built-in named providers<br>(cohere, mistral, ...) set this so their cost resolves under the right catalog key;<br>a bare custom provider may set it to match a catalog entry. Falls back to "custom".|
@@ -3643,7 +3658,7 @@
 |`routeGroups[].routes[].backends[].ai.groups`|[]object||
 |`routeGroups[].routes[].backends[].ai.groups[].providers`|[]object|LLM providers in this group, load balanced together.|
 |`routeGroups[].routes[].backends[].ai.groups[].providers[].name`|string|Name identifying this provider, referenced by `llm.models[].provider`.|
-|`routeGroups[].routes[].backends[].ai.groups[].providers[].provider`|object|The upstream LLM provider type and its configuration.<br>Exactly one of openAI, gemini, vertex, anthropic, bedrock, azure, copilot, or custom may be set.|
+|`routeGroups[].routes[].backends[].ai.groups[].providers[].provider`|object|The upstream LLM provider type and its configuration.<br>Exactly one of openAI, gemini, vertex, anthropic, bedrock, azure, copilot, cloudflare, or custom may be set.|
 |`routeGroups[].routes[].backends[].ai.groups[].providers[].provider.openAI`|object||
 |`routeGroups[].routes[].backends[].ai.groups[].providers[].provider.openAI.model`|string|Model ID to send to OpenAI, overriding the model in the client request.|
 |`routeGroups[].routes[].backends[].ai.groups[].providers[].provider.openAI.moderation`|object|Configuration for running OpenAI inline moderation on request input and generated output.|
@@ -3675,6 +3690,9 @@
 |`routeGroups[].routes[].backends[].ai.groups[].providers[].provider.azure.projectName`|string|The Foundry project name for project-scoped OpenAI-compatible APIs.<br>Used to construct paths: `/api/projects/{projectName}/openai/v1/...`.<br>This is distinct from `resourceName` which is used for the host.|
 |`routeGroups[].routes[].backends[].ai.groups[].providers[].provider.copilot`|object||
 |`routeGroups[].routes[].backends[].ai.groups[].providers[].provider.copilot.model`|string|Model ID to send to GitHub Copilot, overriding the model in the client request.|
+|`routeGroups[].routes[].backends[].ai.groups[].providers[].provider.cloudflare`|object||
+|`routeGroups[].routes[].backends[].ai.groups[].providers[].provider.cloudflare.model`|string|Model ID to send to Workers AI, overriding the model in the client request.|
+|`routeGroups[].routes[].backends[].ai.groups[].providers[].provider.cloudflare.accountId`|string|The Cloudflare account ID that owns the Workers AI usage.|
 |`routeGroups[].routes[].backends[].ai.groups[].providers[].provider.custom`|object||
 |`routeGroups[].routes[].backends[].ai.groups[].providers[].provider.custom.model`|string|Model ID to send to the provider, overriding the model in the client request.|
 |`routeGroups[].routes[].backends[].ai.groups[].providers[].provider.custom.providerOverride`|string|Provider identity for cost-catalog lookup and telemetry. Built-in named providers<br>(cohere, mistral, ...) set this so their cost resolves under the right catalog key;<br>a bare custom provider may set it to match a catalog entry. Falls back to "custom".|
@@ -5067,7 +5085,7 @@
 |`routes[].backends[].mcp.server.instructions`|string|Overrides the gateway preamble prepended to merged upstream instructions.<br>Defaults to a generic gateway description when unset.|
 |`routes[].backends[].ai`|object||
 |`routes[].backends[].ai.name`|string|Name identifying this provider, referenced by `llm.models[].provider`.|
-|`routes[].backends[].ai.provider`|object|The upstream LLM provider type and its configuration.<br>Exactly one of openAI, gemini, vertex, anthropic, bedrock, azure, copilot, or custom may be set.|
+|`routes[].backends[].ai.provider`|object|The upstream LLM provider type and its configuration.<br>Exactly one of openAI, gemini, vertex, anthropic, bedrock, azure, copilot, cloudflare, or custom may be set.|
 |`routes[].backends[].ai.provider.openAI`|object||
 |`routes[].backends[].ai.provider.openAI.model`|string|Model ID to send to OpenAI, overriding the model in the client request.|
 |`routes[].backends[].ai.provider.openAI.moderation`|object|Configuration for running OpenAI inline moderation on request input and generated output.|
@@ -5099,6 +5117,9 @@
 |`routes[].backends[].ai.provider.azure.projectName`|string|The Foundry project name for project-scoped OpenAI-compatible APIs.<br>Used to construct paths: `/api/projects/{projectName}/openai/v1/...`.<br>This is distinct from `resourceName` which is used for the host.|
 |`routes[].backends[].ai.provider.copilot`|object||
 |`routes[].backends[].ai.provider.copilot.model`|string|Model ID to send to GitHub Copilot, overriding the model in the client request.|
+|`routes[].backends[].ai.provider.cloudflare`|object||
+|`routes[].backends[].ai.provider.cloudflare.model`|string|Model ID to send to Workers AI, overriding the model in the client request.|
+|`routes[].backends[].ai.provider.cloudflare.accountId`|string|The Cloudflare account ID that owns the Workers AI usage.|
 |`routes[].backends[].ai.provider.custom`|object||
 |`routes[].backends[].ai.provider.custom.model`|string|Model ID to send to the provider, overriding the model in the client request.|
 |`routes[].backends[].ai.provider.custom.providerOverride`|string|Provider identity for cost-catalog lookup and telemetry. Built-in named providers<br>(cohere, mistral, ...) set this so their cost resolves under the right catalog key;<br>a bare custom provider may set it to match a catalog entry. Falls back to "custom".|
@@ -5277,7 +5298,7 @@
 |`routes[].backends[].ai.groups`|[]object||
 |`routes[].backends[].ai.groups[].providers`|[]object|LLM providers in this group, load balanced together.|
 |`routes[].backends[].ai.groups[].providers[].name`|string|Name identifying this provider, referenced by `llm.models[].provider`.|
-|`routes[].backends[].ai.groups[].providers[].provider`|object|The upstream LLM provider type and its configuration.<br>Exactly one of openAI, gemini, vertex, anthropic, bedrock, azure, copilot, or custom may be set.|
+|`routes[].backends[].ai.groups[].providers[].provider`|object|The upstream LLM provider type and its configuration.<br>Exactly one of openAI, gemini, vertex, anthropic, bedrock, azure, copilot, cloudflare, or custom may be set.|
 |`routes[].backends[].ai.groups[].providers[].provider.openAI`|object||
 |`routes[].backends[].ai.groups[].providers[].provider.openAI.model`|string|Model ID to send to OpenAI, overriding the model in the client request.|
 |`routes[].backends[].ai.groups[].providers[].provider.openAI.moderation`|object|Configuration for running OpenAI inline moderation on request input and generated output.|
@@ -5309,6 +5330,9 @@
 |`routes[].backends[].ai.groups[].providers[].provider.azure.projectName`|string|The Foundry project name for project-scoped OpenAI-compatible APIs.<br>Used to construct paths: `/api/projects/{projectName}/openai/v1/...`.<br>This is distinct from `resourceName` which is used for the host.|
 |`routes[].backends[].ai.groups[].providers[].provider.copilot`|object||
 |`routes[].backends[].ai.groups[].providers[].provider.copilot.model`|string|Model ID to send to GitHub Copilot, overriding the model in the client request.|
+|`routes[].backends[].ai.groups[].providers[].provider.cloudflare`|object||
+|`routes[].backends[].ai.groups[].providers[].provider.cloudflare.model`|string|Model ID to send to Workers AI, overriding the model in the client request.|
+|`routes[].backends[].ai.groups[].providers[].provider.cloudflare.accountId`|string|The Cloudflare account ID that owns the Workers AI usage.|
 |`routes[].backends[].ai.groups[].providers[].provider.custom`|object||
 |`routes[].backends[].ai.groups[].providers[].provider.custom.model`|string|Model ID to send to the provider, overriding the model in the client request.|
 |`routes[].backends[].ai.groups[].providers[].provider.custom.providerOverride`|string|Provider identity for cost-catalog lookup and telemetry. Built-in named providers<br>(cohere, mistral, ...) set this so their cost resolves under the right catalog key;<br>a bare custom provider may set it to match a catalog entry. Falls back to "custom".|
@@ -5735,6 +5759,7 @@
 |`llm.providers[].params.azureResourceType`|enum|For Azure: the type of Azure endpoint (openAI or foundry)<br>Possible values: `openAI`, `foundry`, `aiServices`.|
 |`llm.providers[].params.azureApiVersion`|string|For Azure: the API version to use|
 |`llm.providers[].params.azureProjectName`|string|For Azure: the Foundry project name (required for foundry resource type)|
+|`llm.providers[].params.cloudflareAccountId`|string|For Cloudflare: the account ID that owns the Workers AI usage|
 |`llm.providers[].params.baseUrl`|string|Base URL for the upstream provider. Expands to hostOverride, pathPrefix, and tls for https URLs.<br>The URL path is the upstream base path and defaults to / when omitted.<br>Provider-specific endpoint paths are appended to this base path.<br>For example, `https://api.openai.com/v1` sends completions to `/v1/chat/completions`,<br>while `https://api.openai.com` sends them to `/chat/completions`.|
 |`llm.providers[].params.hostOverride`|string|Override the upstream host for this provider.|
 |`llm.providers[].params.pathOverride`|string|Override the upstream path for this provider.|
@@ -5831,6 +5856,7 @@
 |`llm.models[].params.azureResourceType`|enum|For Azure: the type of Azure endpoint (openAI or foundry)<br>Possible values: `openAI`, `foundry`, `aiServices`.|
 |`llm.models[].params.azureApiVersion`|string|For Azure: the API version to use|
 |`llm.models[].params.azureProjectName`|string|For Azure: the Foundry project name (required for foundry resource type)|
+|`llm.models[].params.cloudflareAccountId`|string|For Cloudflare: the account ID that owns the Workers AI usage|
 |`llm.models[].params.baseUrl`|string|Base URL for the upstream provider. Expands to hostOverride, pathPrefix, and tls for https URLs.<br>The URL path is the upstream base path and defaults to / when omitted.<br>Provider-specific endpoint paths are appended to this base path.<br>For example, `https://api.openai.com/v1` sends completions to `/v1/chat/completions`,<br>while `https://api.openai.com` sends them to `/chat/completions`.|
 |`llm.models[].params.hostOverride`|string|Override the upstream host for this provider.|
 |`llm.models[].params.pathOverride`|string|Override the upstream path for this provider.|
